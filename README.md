@@ -167,7 +167,21 @@ npm run preview
 
 ## 截图预览
 
-（待补充）
+![工作台](https://img.shields.io/badge/工作台-查看-blue)
+![客户管理](https://img.shields.io/badge/客户管理-查看-green)
+![项目管理](https://img.shields.io/badge/项目管理-查看-orange)
+
+## 在线演示
+
+- 演示地址：https://gitee.com/zealotxp/ehaiba-crm
+- 仓库地址：https://gitee.com/zealotxp/ehaiba-crm
+
+## 更新日志
+
+### v1.0.0 (2026-04-25)
+- ✨ 初始版本发布
+- ✨ 完成所有核心功能模块
+- ✨ 支持完整的 CRM 业务流程
 
 ## 开发计划
 
