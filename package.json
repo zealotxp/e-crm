@@ -1,0 +1,27 @@
+{
+  "name": "crm-arco",
+  "version": "1.0.0",
+  "description": "CRM系统 - Arco Design Vue",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.0",
+    "pinia": "^2.1.0",
+    "@arco-design/web-vue": "^2.55.0",
+    "axios": "^1.6.0",
+    "echarts": "^5.4.0",
+    "vue-echarts": "^6.6.0",
+    "dayjs": "^1.11.0",
+    "lodash-es": "^4.17.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "less": "^4.2.0"
+  }
+}

@@ -1,0 +1,66 @@
+// 表格列宽拖动样式 - 高对比度版
+.table-resizable {
+  :deep(.arco-table-th) {
+    position: relative;
+
+    // 列分隔线 - 高对比度蓝色
+    &::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 5%;
+      height: 90%;
+      width: 4px;
+      background-color: #1890ff;
+      border-radius: 2px;
+      opacity: 0.6;
+    }
+
+    &:last-child::after {
+      display: none;
+    }
+  }
+
+  // 拖动手柄样式 - 高对比度
+  :deep(.arco-table-column-resize) {
+    position: absolute;
+    right: -8px;
+    top: 0;
+    bottom: 0;
+    width: 16px;
+    cursor: col-resize;
+    z-index: 10;
+
+    // 默认状态显示蓝色竖条
+    &::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 4px;
+      height: 28px;
+      background-color: #1890ff;
+      border-radius: 2px;
+      opacity: 0.8;
+      box-shadow: 
+        -6px 0 0 0 #1890ff,
+        6px 0 0 0 #1890ff;
+    }
+
+    &:hover,
+    &.arco-table-column-resizing {
+      background-color: rgba(24, 144, 255, 0.15);
+
+      &::before {
+        background-color: #096dd9;
+        width: 6px;
+        height: 36px;
+        opacity: 1;
+        box-shadow: 
+          -8px 0 0 0 #096dd9,
+          8px 0 0 0 #096dd9;
+      }
+    }
+  }
+}

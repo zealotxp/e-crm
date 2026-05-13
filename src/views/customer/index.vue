@@ -1,0 +1,389 @@
+<template>
+  <div class="customer-page">
+    <!-- 搜索栏 -->
+    <a-card class="search-card" :bordered="false">
+      <a-form :model="searchForm" layout="inline">
+        <a-form-item field="keyword" hide-label>
+          <a-input-search
+            v-model="searchForm.keyword"
+            placeholder="搜索客户名称/联系人/电话"
+            style="width: 300px"
+            allow-clear
+            @search="handleSearch"
+          />
+        </a-form-item>
+        <a-form-item field="industry" hide-label>
+          <a-select
+            v-model="searchForm.industry"
+            placeholder="选择行业"
+            style="width: 150px"
+            allow-clear
+          >
+            <a-option
+              v-for="item in INDUSTRY_LIST"
+              :key="item.value"
+              :value="item.value"
+              :label="item.label"
+            />
+          </a-select>
+        </a-form-item>
+        <a-form-item field="level" hide-label>
+          <a-select
+            v-model="searchForm.level"
+            placeholder="客户等级"
+            style="width: 120px"
+            allow-clear
+          >
+            <a-option
+              v-for="item in CUSTOMER_LEVEL"
+              :key="item.value"
+              :value="item.value"
+              :label="item.label"
+            />
+          </a-select>
+        </a-form-item>
+        <a-form-item field="status" hide-label>
+          <a-select
+            v-model="searchForm.status"
+            placeholder="客户状态"
+            style="width: 120px"
+            allow-clear
+          >
+            <a-option
+              v-for="item in CUSTOMER_STATUS"
+              :key="item.value"
+              :value="item.value"
+              :label="item.label"
+            />
+          </a-select>
+        </a-form-item>
+        <a-form-item hide-label>
+          <a-button type="primary" @click="handleSearch">
+            <template #icon><icon-search /></template>
+            查询
+          </a-button>
+          <a-button @click="handleReset" style="margin-left: 8px">
+            重置
+          </a-button>
+        </a-form-item>
+      </a-form>
+    </a-card>
+
+    <!-- 操作栏 -->
+    <a-card class="table-card table-resizable" :bordered="false">
+      <template #title>
+        <a-space>
+          <a-button type="primary" @click="handleAdd">新建客户</a-button>
+          <a-button @click="handleImport">导入</a-button>
+          <a-button @click="handleExport">导出</a-button>
+        </a-space>
+      </template>
+      
+      <!-- 标签页 -->
+      <a-tabs v-model="activeTab" @change="handleTabChange">
+        <a-tab-pane key="all" title="全部客户" />
+        <a-tab-pane key="my" title="我的客户" />
+        <a-tab-pane key="pool" title="公海池" />
+        <a-tab-pane key="recent" title="最近跟进" />
+        <a-tab-pane key="unfollow7" title="7天未跟进" />
+        <a-tab-pane key="unfollow30" title="30天未跟进" />
+      </a-tabs>
+
+      <!-- 数据表格 -->
+      <a-table
+        :loading="loading"
+        :data="tableData"
+        :pagination="pagination"
+        @page-change="handlePageChange"
+        @page-size-change="handlePageSizeChange"
+        row-key="id"
+        stripe
+        column-resizable>
+        <template #columns>
+          <a-table-column title="客户编号" data-index="customerNo" :width="120" >
+            <template #cell="{ record }">
+              <a-link @click="handleView(record)">{{ record.customerNo }}</a-link>
+            </template>
+          </a-table-column>
+          <a-table-column title="客户名称" data-index="name" :width="200" >
+            <template #cell="{ record }">
+              <a-link @click="handleView(record)">{{ record.name }}</a-link>
+            </template>
+          </a-table-column>
+          <a-table-column title="行业" data-index="industry" :width="120" >
+            <template #cell="{ record }">
+              {{ getIndustryLabel(record.industry) }}
+            </template>
+          </a-table-column>
+          <a-table-column title="联系人" data-index="contactName" :width="120" />
+          <a-table-column title="联系电话" data-index="contactPhone" :width="140" />
+          <a-table-column title="等级" data-index="level" :width="100" >
+            <template #cell="{ record }">
+              <a-tag :color="getLevelColor(record.level)">
+                {{ getLevelLabel(record.level) }}
+              </a-tag>
+            </template>
+          </a-table-column>
+          <a-table-column title="状态" data-index="status" :width="120" >
+            <template #cell="{ record }">
+              <a-tag :color="getStatusColor(record.status)">
+                {{ getStatusLabel(record.status) }}
+              </a-tag>
+            </template>
+          </a-table-column>
+          <a-table-column title="项目数" data-index="projectCount" :width="100" align="center">
+            <template #cell="{ record }">
+              <a-badge :count="record.projectCount || 0" show-zero />
+            </template>
+          </a-table-column>
+          <a-table-column title="归属销售" data-index="ownerName" :width="120" />
+          <a-table-column title="最近跟进" data-index="lastFollowTime" :width="160" >
+            <template #cell="{ record }">
+              {{ formatDate(record.lastFollowTime) }}
+            </template>
+          </a-table-column>
+          <a-table-column title="操作" :width="200" fixed="right" >
+            <template #cell="{ record }">
+              <a-space>
+                <a-button type="text" size="small" @click="handleFollow(record)">
+                  跟进
+                </a-button>
+                <a-button type="text" size="small" @click="handleEdit(record)">
+                  编辑
+                </a-button>
+                <a-dropdown trigger="hover">
+                  <a-button type="text" size="small">
+                    更多<icon-down />
+                  </a-button>
+                  <template #content>
+                    <a-doption @click="handleView(record)">查看详情</a-doption>
+                    <a-doption @click="handleTransfer(record)">转移客户</a-doption>
+                    <a-doption @click="handleViewProjects(record)">查看项目</a-doption>
+                  </template>
+                </a-dropdown>
+              </a-space>
+            </template>
+          </a-table-column>
+        </template>
+      </a-table>
+    </a-card>
+
+    <!-- 新建/编辑客户弹窗 -->
+    <a-modal
+      v-model:visible="modalVisible"
+      :title="modalTitle"
+      :width="700"
+      :footer="false"
+      @cancel="modalVisible = false"
+    >
+      <CustomerForm
+        v-if="modalVisible"
+        :type="modalType"
+        :data="currentRow"
+        @submit="handleModalSubmit"
+        @cancel="modalVisible = false"
+      />
+    </a-modal>
+  </div>
+</template>
+
+<script setup>
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { Message } from '@arco-design/web-vue'
+import { IconSearch, IconPlus, IconDown } from '@arco-design/web-vue/es/icon'
+import { 
+  INDUSTRY_LIST, 
+  CUSTOMER_LEVEL, 
+  CUSTOMER_STATUS,
+  getDictLabel, 
+  getDictColor 
+} from '@/utils/dict'
+import CustomerForm from './components/CustomerForm.vue'
+
+const router = useRouter()
+
+const loading = ref(false)
+const modalVisible = ref(false)
+const modalType = ref('add')
+const modalTitle = ref('新建客户')
+const currentRow = ref(null)
+const activeTab = ref('all')
+
+const searchForm = reactive({
+  keyword: '',
+  industry: undefined,
+  level: undefined,
+  status: undefined
+})
+
+const pagination = reactive({
+  total: 128,
+  current: 1,
+  pageSize: 20
+})
+
+// 客户数据
+const tableData = ref([
+  {
+    id: 1,
+    customerNo: '1501',
+    name: '阿里巴巴网络技术有限公司',
+    industry: 'internet',
+    contactName: '张三',
+    contactPhone: '138****8888',
+    level: 'A',
+    status: 'signed',
+    projectCount: 3,
+    ownerName: '李四',
+    lastFollowTime: '2024-03-20 14:30'
+  },
+  {
+    id: 2,
+    customerNo: '1502',
+    name: '腾讯科技（深圳）有限公司',
+    industry: 'internet',
+    contactName: '王五',
+    contactPhone: '139****9999',
+    level: 'A',
+    status: 'intention',
+    projectCount: 1,
+    ownerName: '李四',
+    lastFollowTime: '2024-03-18 10:00'
+  },
+  {
+    id: 3,
+    customerNo: '1503',
+    name: '招商银行股份有限公司',
+    industry: 'finance',
+    contactName: '赵六',
+    contactPhone: '137****7777',
+    level: 'B',
+    status: 'potential',
+    projectCount: 2,
+    ownerName: '王五',
+    lastFollowTime: '2024-03-15 16:00'
+  },
+  {
+    id: 4,
+    customerNo: '1504',
+    name: '中国平安保险（集团）股份有限公司',
+    industry: 'finance',
+    contactName: '钱七',
+    contactPhone: '136****6666',
+    level: 'B',
+    status: 'signed',
+    projectCount: 1,
+    ownerName: '王五',
+    lastFollowTime: '2024-03-10 09:30'
+  },
+  {
+    id: 5,
+    customerNo: '1505',
+    name: '美团点评',
+    industry: 'internet',
+    contactName: '孙八',
+    contactPhone: '135****5555',
+    level: 'A',
+    status: 'intention',
+    projectCount: 0,
+    ownerName: '张三',
+    lastFollowTime: '2024-03-12 11:00'
+  }
+])
+
+const getIndustryLabel = (value) => getDictLabel(INDUSTRY_LIST, value)
+const getLevelLabel = (value) => getDictLabel(CUSTOMER_LEVEL, value)
+const getLevelColor = (value) => getDictColor(CUSTOMER_LEVEL, value)
+const getStatusLabel = (value) => getDictLabel(CUSTOMER_STATUS, value)
+const getStatusColor = (value) => getDictColor(CUSTOMER_STATUS, value)
+
+const formatDate = (date) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+const handleSearch = () => {}
+const handleReset = () => {}
+const handleTabChange = () => {}
+const handlePageChange = (page) => {
+  pagination.current = page
+}
+const handlePageSizeChange = (size) => {
+  pagination.pageSize = size
+  pagination.current = 1
+}
+
+const handleAdd = () => {
+  modalType.value = 'add'
+  modalTitle.value = '新建客户'
+  currentRow.value = null
+  modalVisible.value = true
+}
+
+const handleEdit = (record) => {
+  modalType.value = 'edit'
+  modalTitle.value = '编辑客户'
+  currentRow.value = { ...record }
+  modalVisible.value = true
+}
+
+const handleView = (record) => {
+  router.push(`/customer/${record.id}`)
+}
+
+const handleViewProjects = (record) => {
+  router.push(`/project?customerId=${record.customerNo}`)
+}
+
+const handleFollow = (record) => {
+  Message.success(`跟进客户：${record.name}`)
+}
+
+const handleTransfer = (record) => {
+  Message.success(`转移客户：${record.name}`)
+}
+
+const handleImport = () => {
+  Message.success('导入功能开发中...')
+}
+
+const handleExport = () => {
+  Message.success('导出功能开发中...')
+}
+
+const handleModalSubmit = (values) => {
+  if (modalType.value === 'add') {
+    const maxNo = Math.max(...tableData.value.map(c => parseInt(c.customerNo)), 1500)
+    tableData.value.push({
+      ...values,
+      id: Date.now(),
+      customerNo: String(maxNo + 1),
+      projectCount: 0,
+      ownerName: '当前用户'
+    })
+    Message.success('客户创建成功')
+  } else {
+    const index = tableData.value.findIndex(c => c.id === currentRow.value.id)
+    if (index > -1) {
+      tableData.value[index] = { ...tableData.value[index], ...values }
+    }
+    Message.success('客户更新成功')
+  }
+  modalVisible.value = false
+}
+</script>
+
+<style scoped lang="less">
+.customer-page {
+  .search-card {
+    margin-bottom: 16px;
+  }
+}
+</style>
