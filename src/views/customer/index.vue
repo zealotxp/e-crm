@@ -92,7 +92,7 @@
       <!-- 数据表格 -->
       <a-table
         :loading="loading"
-        :data="tableData"
+        :data="displayData"
         :pagination="pagination"
         @page-change="handlePageChange"
         @page-size-change="handlePageSizeChange"
@@ -196,8 +196,8 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { Message } from '@arco-design/web-vue'
 import { IconSearch, IconPlus, IconDown } from '@arco-design/web-vue/es/icon'
 import { 
@@ -210,6 +210,10 @@ import {
 import CustomerForm from './components/CustomerForm.vue'
 
 const router = useRouter()
+const route = useRoute()
+
+// 判断是否是我的客户页面
+const isMyCustomer = computed(() => route.path === '/customer/my')
 
 const loading = ref(false)
 const modalVisible = ref(false)
@@ -314,6 +318,18 @@ const tableData = ref([
     ]
   }
 ])
+
+// 根据路由过滤数据
+const filteredTableData = computed(() => {
+  if (isMyCustomer.value) {
+    // 我的客户：只显示归属销售为"当前用户"或"张三"的客户（示例）
+    return tableData.value.filter(item => item.ownerName === '当前用户' || item.ownerName === '张三')
+  }
+  return tableData.value
+})
+
+// 计算属性用于表格数据
+const displayData = computed(() => filteredTableData.value)
 
 const getIndustryLabel = (value) => getDictLabel(INDUSTRY_LIST, value)
 const getLevelLabel = (value) => getDictLabel(CUSTOMER_LEVEL, value)

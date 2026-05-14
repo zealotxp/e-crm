@@ -9,7 +9,18 @@ export const menuConfig = [
     key: 'Customer',
     title: '客户管理',
     icon: 'icon-user-group',
-    path: '/customer'
+    children: [
+      {
+        key: 'CustomerList',
+        title: '全部客户',
+        path: '/customer'
+      },
+      {
+        key: 'MyCustomer',
+        title: '我的客户',
+        path: '/customer/my'
+      }
+    ]
   },
   {
     key: 'Sales',

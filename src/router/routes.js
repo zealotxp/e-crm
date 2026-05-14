@@ -22,8 +22,18 @@ export const routes = [
         name: 'Customer',
         component: () => import('@/views/customer/index.vue'),
         meta: {
-          title: '客户管理',
+          title: '全部客户',
           icon: 'icon-user-group'
+        }
+      },
+      {
+        path: '/customer/my',
+        name: 'MyCustomer',
+        component: () => import('@/views/customer/index.vue'),
+        meta: {
+          title: '我的客户',
+          icon: 'icon-user',
+          filterByOwner: true
         }
       },
       {
