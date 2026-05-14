@@ -26,12 +26,11 @@ const props = defineProps({
 })
 
 const basicData = computed(() => [
-  { label: '客户编号', value: `C${String(props.data.id).padStart(6, '0')}` },
+  { label: '客户编号', value: props.data.customerNo || `C${String(props.data.id).padStart(6, '0')}` },
   { label: '客户简称', value: props.data.shortName || '-' },
   { label: '所属行业', value: getDictLabel(INDUSTRY_LIST, props.data.industry) },
   { label: '企业规模', value: getDictLabel(COMPANY_SIZE, props.data.size) },
   { label: '客户来源', value: getDictLabel(CUSTOMER_SOURCE, props.data.source) },
-  { label: '公司网站', value: props.data.website || '-' },
   { label: '公司电话', value: props.data.phone || '-' },
   { label: '详细地址', value: props.data.address || '-' }
 ])

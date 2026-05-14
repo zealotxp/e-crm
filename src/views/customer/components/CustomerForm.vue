@@ -53,13 +53,8 @@
         </a-form-item>
       </a-col>
       <a-col :span="12">
-        <a-form-item field="email" label="邮箱">
-          <a-input v-model="form.email" placeholder="请输入邮箱" />
-        </a-form-item>
-      </a-col>
-      <a-col :span="12">
-        <a-form-item field="website" label="网站">
-          <a-input v-model="form.website" placeholder="请输入网站" />
+        <a-form-item field="customerNo" label="客户编号" required>
+          <a-input v-model="form.customerNo" placeholder="请输入客户编号" />
         </a-form-item>
       </a-col>
       <a-col :span="24">
@@ -104,8 +99,7 @@ const form = reactive({
   status: 'potential',
   contactName: '',
   contactPhone: '',
-  email: '',
-  website: '',
+  customerNo: '',
   address: '',
   remark: ''
 })
@@ -116,7 +110,8 @@ const rules = {
   level: [{ required: true, message: '请选择客户等级' }],
   status: [{ required: true, message: '请选择客户状态' }],
   contactName: [{ required: true, message: '请输入联系人' }],
-  contactPhone: [{ required: true, message: '请输入联系电话' }]
+  contactPhone: [{ required: true, message: '请输入联系电话' }],
+  customerNo: [{ required: true, message: '请输入客户编号' }]
 }
 
 watch(() => props.data, (val) => {
