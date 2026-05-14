@@ -55,6 +55,11 @@ export const menuConfig = [
         path: '/project'
       },
       {
+        key: 'ProjectTree',
+        title: '项目树',
+        path: '/project-tree'
+      },
+      {
         key: 'Task',
         title: '任务管理',
         path: '/task'

@@ -91,6 +91,15 @@ export const routes = [
         }
       },
       {
+        path: '/project-tree',
+        name: 'ProjectTree',
+        component: () => import('@/views/project/ProjectTree.vue'),
+        meta: {
+          title: '项目树',
+          icon: 'icon-tree'
+        }
+      },
+      {
         path: '/project/detail/:id',
         name: 'ProjectDetail',
         component: () => import('@/views/project/detail.vue'),
