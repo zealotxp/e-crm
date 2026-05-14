@@ -8,11 +8,22 @@
           <a-option value="2" label="移动端APP开发" />
           <a-option value="3" label="数据中台建设" />
         </a-select>
+        <a-radio-group v-model="viewMode" type="button">
+          <a-radio value="kanban">
+            <template #radio><icon-apps /></template>
+            看板
+          </a-radio>
+          <a-radio value="list">
+            <template #radio><icon-list /></template>
+            列表
+          </a-radio>
+        </a-radio-group>
         <a-button type="primary" @click="handleAdd"><template #icon><icon-plus /></template>新建任务</a-button>
       </a-space>
     </a-card>
 
-    <div class="kanban-board">
+    <!-- 看板视图 -->
+    <div v-if="viewMode === 'kanban'" class="kanban-board">
       <div v-for="status in taskStatuses" :key="status.value" class="kanban-column">
         <div class="column-header">
           <span class="status-name">{{ status.label }}</span>
@@ -41,6 +52,59 @@
         </div>
       </div>
     </div>
+
+    <!-- 列表视图 -->
+    <a-card v-else class="list-view" :bordered="false">
+      <a-table :data="tasks" stripe>
+        <template #columns>
+          <a-table-column title="任务编号" data-index="taskNo" :width="100" />
+          <a-table-column title="任务标题" data-index="title" :width="250" />
+          <a-table-column title="优先级" data-index="priority" :width="100">
+            <template #cell="{ record }">
+              <a-tag :color="getPriorityColor(record.priority)" size="small">
+                {{ getPriorityLabel(record.priority) }}
+              </a-tag>
+            </template>
+          </a-table-column>
+          <a-table-column title="状态" data-index="status" :width="100">
+            <template #cell="{ record }">
+              <a-tag :color="getStatusColor(record.status)">
+                {{ getStatusLabel(record.status) }}
+              </a-tag>
+            </template>
+          </a-table-column>
+          <a-table-column title="负责人" data-index="assignee" :width="120">
+            <template #cell="{ record }">
+              <a-avatar :size="20" :style="{ background: '#1890ff' }">{{ record.assignee.charAt(0) }}</a-avatar>
+              {{ record.assignee }}
+            </template>
+          </a-table-column>
+          <a-table-column title="截止日期" data-index="deadline" :width="120">
+            <template #cell="{ record }">
+              <span :class="{ overdue: isOverdue(record.deadline) }">{{ record.deadline }}</span>
+            </template>
+          </a-table-column>
+          <a-table-column title="预估工时" data-index="estimatedHours" :width="100" align="center">
+            <template #cell="{ record }">
+              {{ record.estimatedHours }}h
+            </template>
+          </a-table-column>
+          <a-table-column title="实际工时" data-index="actualHours" :width="100" align="center">
+            <template #cell="{ record }">
+              {{ record.actualHours || 0 }}h
+            </template>
+          </a-table-column>
+          <a-table-column title="操作" :width="150" fixed="right">
+            <template #cell="{ record }">
+              <a-space>
+                <a-button type="text" size="small" @click="handleEdit(record)">编辑</a-button>
+                <a-button type="text" size="small" status="danger">删除</a-button>
+              </a-space>
+            </template>
+          </a-table-column>
+        </template>
+      </a-table>
+    </a-card>
     
     <a-modal v-model:visible="modalVisible" :title="modalTitle" :width="700" :footer="false" @cancel="modalVisible = false">
       <TaskForm v-if="modalVisible" :type="modalType" :data="currentRow" @submit="handleModalSubmit" @cancel="modalVisible = false" />
@@ -49,13 +113,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Message } from '@arco-design/web-vue'
-import { IconPlus, IconClockCircle } from '@arco-design/web-vue/es/icon'
+import { IconPlus, IconClockCircle, IconApps, IconList } from '@arco-design/web-vue/es/icon'
 import { TASK_STATUS, TASK_PRIORITY, getDictLabel, getDictColor } from '@/utils/dict'
 import TaskForm from './components/TaskForm.vue'
 
 const selectedProject = ref('1')
+const viewMode = ref('kanban') // 'kanban' 或 'list'
 const modalVisible = ref(false)
 const modalType = ref('add')
 const modalTitle = ref('新建任务')
@@ -81,6 +146,14 @@ const tasks = ref([
 
 const getPriorityLabel = (priority) => getDictLabel(TASK_PRIORITY, priority)
 const getPriorityColor = (priority) => getDictColor(TASK_PRIORITY, priority)
+const getStatusLabel = (status) => {
+  const statusMap = { todo: '待办', in_progress: '进行中', completed: '已完成', cancelled: '已取消' }
+  return statusMap[status] || status
+}
+const getStatusColor = (status) => {
+  const colorMap = { todo: 'gray', in_progress: 'blue', completed: 'green', cancelled: 'red' }
+  return colorMap[status] || 'default'
+}
 const getTasksByStatus = (status) => tasks.value.filter(t => t.status === status)
 const getTaskCount = (status) => tasks.value.filter(t => t.status === status).length
 const isOverdue = (deadline) => new Date(deadline) < new Date()
@@ -121,6 +194,9 @@ const handleModalSubmit = (values) => {
 <style scoped lang="less">
 .task-page {
   .project-select-card { margin-bottom: 16px; }
+  .list-view {
+    .overdue { color: #ff4d4f; }
+  }
   .kanban-board {
     display: flex;
     gap: 16px;
