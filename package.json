@@ -1,6 +1,6 @@
 {
   "name": "crm-arco",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "CRM系统 - Arco Design Vue",
   "type": "module",
   "scripts": {
