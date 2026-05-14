@@ -115,8 +115,11 @@
               {{ getIndustryLabel(record.industry) }}
             </template>
           </a-table-column>
-          <a-table-column title="联系人" data-index="contactName" :width="120" />
-          <a-table-column title="联系电话" data-index="contactPhone" :width="140" />
+          <a-table-column title="联系人数量" data-index="contactCount" :width="100" align="center">
+            <template #cell="{ record }">
+              <a-badge :count="record.contacts?.length || 0" show-zero />
+            </template>
+          </a-table-column>
           <a-table-column title="等级" data-index="level" :width="100" >
             <template #cell="{ record }">
               <a-tag :color="getLevelColor(record.level)">
@@ -230,65 +233,75 @@ const tableData = ref([
     customerNo: '1501',
     name: '阿里巴巴网络技术有限公司',
     industry: 'internet',
-    contactName: '张三',
-    contactPhone: '138****8888',
     level: 'A',
     status: 'signed',
     projectCount: 3,
     ownerName: '李四',
-    lastFollowTime: '2024-03-20 14:30'
+    lastFollowTime: '2024-03-20 14:30',
+    contacts: [
+      { id: 101, name: '张三', phone: '138****8888', email: 'zhangsan@alibaba.com', position: '技术总监', isPrimary: true },
+      { id: 102, name: '李四', phone: '138****7777', email: 'lisi@alibaba.com', position: '项目经理', isPrimary: false },
+      { id: 103, name: '王五', phone: '138****6666', email: 'wangwu@alibaba.com', position: '产品经理', isPrimary: false }
+    ]
   },
   {
     id: 2,
     customerNo: '1502',
     name: '腾讯科技（深圳）有限公司',
     industry: 'internet',
-    contactName: '王五',
-    contactPhone: '139****9999',
     level: 'A',
     status: 'intention',
     projectCount: 1,
     ownerName: '李四',
-    lastFollowTime: '2024-03-18 10:00'
+    lastFollowTime: '2024-03-18 10:00',
+    contacts: [
+      { id: 201, name: '王五', phone: '139****9999', email: 'wangwu@tencent.com', position: 'CTO', isPrimary: true }
+    ]
   },
   {
     id: 3,
     customerNo: '1503',
     name: '招商银行股份有限公司',
     industry: 'finance',
-    contactName: '赵六',
-    contactPhone: '137****7777',
     level: 'B',
     status: 'potential',
     projectCount: 2,
     ownerName: '王五',
-    lastFollowTime: '2024-03-15 16:00'
+    lastFollowTime: '2024-03-15 16:00',
+    contacts: [
+      { id: 301, name: '赵六', phone: '137****7777', email: 'zhaoliu@cmbchina.com', position: '信息部经理', isPrimary: true },
+      { id: 302, name: '钱七', phone: '137****6666', email: 'qianqi@cmbchina.com', position: '技术主管', isPrimary: false }
+    ]
   },
   {
     id: 4,
     customerNo: '1504',
     name: '中国平安保险（集团）股份有限公司',
     industry: 'finance',
-    contactName: '钱七',
-    contactPhone: '136****6666',
     level: 'B',
     status: 'signed',
     projectCount: 1,
     ownerName: '王五',
-    lastFollowTime: '2024-03-10 09:30'
+    lastFollowTime: '2024-03-10 09:30',
+    contacts: [
+      { id: 401, name: '钱七', phone: '136****6666', email: 'qianqi@pingan.com', position: 'IT总监', isPrimary: true }
+    ]
   },
   {
     id: 5,
     customerNo: '1505',
     name: '美团点评',
     industry: 'internet',
-    contactName: '孙八',
-    contactPhone: '135****5555',
     level: 'A',
     status: 'intention',
     projectCount: 0,
     ownerName: '张三',
-    lastFollowTime: '2024-03-12 11:00'
+    lastFollowTime: '2024-03-12 11:00',
+    contacts: [
+      { id: 501, name: '孙八', phone: '135****5555', email: 'sunba@meituan.com', position: '技术负责人', isPrimary: true },
+      { id: 502, name: '周九', phone: '135****4444', email: 'zhoujiu@meituan.com', position: '产品经理', isPrimary: false },
+      { id: 503, name: '吴十', phone: '135****3333', email: 'wushi@meituan.com', position: '开发经理', isPrimary: false }
+    ]
   }
 ])
 
