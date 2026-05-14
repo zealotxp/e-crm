@@ -27,7 +27,8 @@ const props = defineProps({
 
 const basicData = computed(() => [
   { label: '客户编号', value: props.data.customerNo || `C${String(props.data.id).padStart(6, '0')}` },
-  { label: '客户简称', value: props.data.shortName || '-' },
+  { label: '客户主体', value: props.data.entityName || '-' },
+  { label: '客户名称', value: props.data.name || '-' },
   { label: '所属行业', value: getDictLabel(INDUSTRY_LIST, props.data.industry) },
   { label: '企业规模', value: getDictLabel(COMPANY_SIZE, props.data.size) },
   { label: '客户来源', value: getDictLabel(CUSTOMER_SOURCE, props.data.source) },

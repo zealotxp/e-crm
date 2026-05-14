@@ -2,8 +2,13 @@
   <a-form ref="formRef" :model="form" :rules="rules" layout="vertical" @submit="handleSubmit">
     <a-row :gutter="16">
       <a-col :span="12">
+        <a-form-item field="entityName" label="客户主体名称" required>
+          <a-input v-model="form.entityName" placeholder="请输入客户主体名称（公司/个人）" />
+        </a-form-item>
+      </a-col>
+      <a-col :span="12">
         <a-form-item field="name" label="客户名称" required>
-          <a-input v-model="form.name" placeholder="请输入客户名称" />
+          <a-input v-model="form.name" placeholder="请输入客户名称（项目描述，如：外卖小程序）" />
         </a-form-item>
       </a-col>
       <a-col :span="12">
@@ -119,6 +124,7 @@ const formRef = ref(null)
 const submitting = ref(false)
 
 const form = reactive({
+  entityName: '',
   name: '',
   industry: undefined,
   level: 'B',
@@ -130,6 +136,7 @@ const form = reactive({
 })
 
 const rules = {
+  entityName: [{ required: true, message: '请输入客户主体名称' }],
   name: [{ required: true, message: '请输入客户名称' }],
   industry: [{ required: true, message: '请选择所属行业' }],
   level: [{ required: true, message: '请选择客户等级' }],

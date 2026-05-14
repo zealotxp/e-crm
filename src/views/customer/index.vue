@@ -105,6 +105,11 @@
               <a-link @click="handleView(record)">{{ record.customerNo }}</a-link>
             </template>
           </a-table-column>
+          <a-table-column title="客户主体" data-index="entityName" :width="180" >
+            <template #cell="{ record }">
+              <a-link @click="handleView(record)">{{ record.entityName }}</a-link>
+            </template>
+          </a-table-column>
           <a-table-column title="客户名称" data-index="name" :width="200" >
             <template #cell="{ record }">
               <a-link @click="handleView(record)">{{ record.name }}</a-link>
@@ -231,7 +236,8 @@ const tableData = ref([
   {
     id: 1,
     customerNo: '1501',
-    name: '阿里巴巴网络技术有限公司',
+    entityName: '阿里巴巴网络技术有限公司',
+    name: '电商平台升级项目',
     industry: 'internet',
     level: 'A',
     status: 'signed',
@@ -247,7 +253,8 @@ const tableData = ref([
   {
     id: 2,
     customerNo: '1502',
-    name: '腾讯科技（深圳）有限公司',
+    entityName: '腾讯科技（深圳）有限公司',
+    name: '企业微信定制开发',
     industry: 'internet',
     level: 'A',
     status: 'intention',
@@ -261,7 +268,8 @@ const tableData = ref([
   {
     id: 3,
     customerNo: '1503',
-    name: '招商银行股份有限公司',
+    entityName: '招商银行股份有限公司',
+    name: '移动银行APP优化',
     industry: 'finance',
     level: 'B',
     status: 'potential',
@@ -276,7 +284,8 @@ const tableData = ref([
   {
     id: 4,
     customerNo: '1504',
-    name: '中国平安保险（集团）股份有限公司',
+    entityName: '中国平安保险（集团）股份有限公司',
+    name: '保险理赔系统开发',
     industry: 'finance',
     level: 'B',
     status: 'signed',
@@ -290,7 +299,8 @@ const tableData = ref([
   {
     id: 5,
     customerNo: '1505',
-    name: '美团点评',
+    entityName: '美团点评',
+    name: '外卖小程序开发',
     industry: 'internet',
     level: 'A',
     status: 'intention',
