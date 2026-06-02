@@ -1,12 +1,15 @@
 {
   "name": "crm-arco",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "CRM系统 - Arco Design Vue",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "node scripts/deploy.cjs",
+    "deploy:minor": "node scripts/deploy.cjs minor",
+    "deploy:major": "node scripts/deploy.cjs major"
   },
   "dependencies": {
     "vue": "^3.4.0",

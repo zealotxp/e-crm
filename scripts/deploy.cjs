@@ -1,12 +1,13 @@
 /**
  * ehaiba-crm 自动部署脚本
- * 功能：版本号自增 → 构建 → 更新 CHANGELOG → 提交推送 → 部署 Gitee Pages
+ * 功能: 版本号自增 → 构建 → 更新 CHANGELOG → 提交 → 推送 → Gitee Pages
  *
  * 用法:
- *   node scripts/deploy.cjs              # patch 版本号自增 (1.0.7 → 1.0.8)
- *   node scripts/deploy.cjs minor        # minor 版本号自增 (1.0.7 → 1.1.0)
- *   node scripts/deploy.cjs major        # major 版本号自增 (1.0.7 → 2.0.0)
- *   node scripts/deploy.cjs --message "自定义提交说明"
+ *   npm run deploy              # patch 版本自增 (1.0.7 → 1.0.8)
+ *   npm run deploy:minor        # minor 版本自增 (1.0.7 → 1.1.0)
+ *   npm run deploy:major        # major 版本自增 (1.0.7 → 2.0.0)
+ *   或:
+ *   node scripts/deploy.cjs [minor|major] [--message "说明"]
  */
 
 const { execSync } = require('child_process')
@@ -14,179 +15,107 @@ const fs = require('fs')
 const path = require('path')
 
 const ROOT = path.resolve(__dirname, '..')
-const PKG_PATH = path.join(ROOT, 'package.json')
-const CHANGELOG_PATH = path.join(ROOT, 'CHANGELOG.md')
-const DIST_DIR = path.join(ROOT, 'dist')
 
-// ─── 工具函数 ───────────────────────────────────────
+// ─── 工具 ────────────────────────────────────────────
 const run = (cmd, opts = {}) => {
   console.log(`  > ${cmd}`)
   return execSync(cmd, { cwd: ROOT, stdio: 'inherit', ...opts })
 }
-
-const runSilent = (cmd) => {
-  return execSync(cmd, { cwd: ROOT, encoding: 'utf-8', stdio: 'pipe' }).trim()
+const silent = (cmd) => execSync(cmd, { cwd: ROOT, encoding: 'utf-8', stdio: 'pipe' }).trim()
+const bump = (ver, t) => {
+  const [a, b, c] = ver.split('.').map(Number)
+  return t === 'major' ? `${a + 1}.0.0` : t === 'minor' ? `${a}.${b + 1}.0` : `${a}.${b}.${c + 1}`
 }
+const today = () => new Date().toISOString().slice(0, 10)
 
-const bump = (version, type) => {
-  const parts = version.split('.').map(Number)
-  if (type === 'major') { parts[0]++; parts[1] = 0; parts[2] = 0 }
-  else if (type === 'minor') { parts[1]++; parts[2] = 0 }
-  else { parts[2]++ }
-  return parts.join('.')
-}
-
-const todayStr = () => {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
-// ─── 参数解析 ───────────────────────────────────────
+// ─── 参数 ────────────────────────────────────────────
 const args = process.argv.slice(2)
 const bumpType = args.includes('major') ? 'major' : args.includes('minor') ? 'minor' : 'patch'
-const msgIdx = args.indexOf('--message')
-const customMessage = msgIdx > -1 ? args[msgIdx + 1] : null
+const mi = args.indexOf('--message')
+const customMsg = mi > -1 ? args[mi + 1] : null
 
-// ─── 主流程 ─────────────────────────────────────────
-console.log('\n🚀 ehaiba-crm 自动部署\n')
-console.log('━'.repeat(50))
+// ─── 主流程 ──────────────────────────────────────────
+console.log('\n🚀 ehaiba-crm 自动部署\n' + '━'.repeat(50))
 
-// 1. 读取并升级版本号
-console.log('\n📦 Step 1: 版本号升级')
-const pkg = JSON.parse(fs.readFileSync(PKG_PATH, 'utf-8'))
-const oldVersion = pkg.version
-const newVersion = bump(oldVersion, bumpType)
-pkg.version = newVersion
-fs.writeFileSync(PKG_PATH, JSON.stringify(pkg, null, 2) + '\n')
-console.log(`   ${oldVersion} → ${newVersion}`)
-
-// 2. 获取暂存区变更摘要生成默认 message
-let commitMsg = customMessage
-if (!commitMsg) {
-  try {
-    const staged = runSilent('git diff --cached --stat')
-    const unstaged = runSilent('git diff --stat')
-    const untracked = runSilent('git ls-files --others --exclude-standard')
-    if (staged || unstaged || untracked) {
-      const files = []
-      if (staged) files.push(...staged.split('\n').filter(Boolean).slice(0, 3))
-      if (unstaged) files.push(...unstaged.split('\n').filter(Boolean).slice(0, 3))
-      commitMsg = `chore: 更新版本号至 v${newVersion}\n\n${files.join('\n')}`
-    } else {
-      commitMsg = `chore: 更新版本号至 v${newVersion}`
-    }
-  } catch {
-    commitMsg = `chore: 更新版本号至 v${newVersion}`
-  }
+// 确保在 master 分支且工作区干净
+const currentBranch = silent('git branch --show-current')
+if (currentBranch !== 'master') {
+  console.log('❌ 当前不在 master 分支，请先切换到 master')
+  process.exit(1)
 }
 
-// 3. 构建
-console.log('\n🔨 Step 2: 项目构建')
-runSilent('npx vite build')
+const dirty = silent('git status --porcelain')
+if (dirty) {
+  console.log('⚠ 工作区有未提交的变更，正在自动提交...')
+  run('git add -A')
+  try { run('git commit -m "chore: auto-commit before deploy"', { stdio: 'pipe' }) } catch {}
+}
 
-// 4. 确认 dist 存在
-if (!fs.existsSync(path.join(DIST_DIR, 'index.html'))) {
+// 1. 版本升级
+console.log('\n📦 Step 1: 版本号升级')
+const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf-8'))
+const oldVer = pkg.version
+const newVer = bump(oldVer, bumpType)
+pkg.version = newVer
+fs.writeFileSync(path.join(ROOT, 'package.json'), JSON.stringify(pkg, null, 2) + '\n')
+console.log(`   ${oldVer} → ${newVer}`)
+
+// 2. 构建
+console.log('\n🔨 Step 2: 项目构建')
+silent('npx vite build')
+
+// 3. 验证
+if (!fs.existsSync(path.join(ROOT, 'dist', 'index.html'))) {
   console.log('\n❌ 构建失败：dist/index.html 不存在')
   process.exit(1)
 }
 
-// 5. 更新 CHANGELOG
+// 4. 更新 CHANGELOG
 console.log('\n📝 Step 3: 更新 CHANGELOG')
-const changelogContent = fs.readFileSync(CHANGELOG_PATH, 'utf-8')
-const title = `## [${newVersion}] - ${todayStr()}`
-const hasEntry = changelogContent.includes(title)
-
-if (!hasEntry) {
-  const newEntry = `${title}
-
-### Added
-- (请在此处填写新功能)
-
-### Changed
-- (请在此处填写变更内容)
-
-### Fixed
-- (请在此处填写修复内容)
-
----
-
-`
-  const updated = changelogContent.replace(
-    /^(# CHANGELOG\n\n)/,
-    `$1${newEntry}`
-  )
-  fs.writeFileSync(CHANGELOG_PATH, updated)
-  console.log(`   CHANGELOG 已添加 v${newVersion} 条目`)
-} else {
-  console.log(`   CHANGELOG 已存在 v${newVersion}，跳过`)
+const clPath = path.join(ROOT, 'CHANGELOG.md')
+let cl = fs.readFileSync(clPath, 'utf-8')
+const entry = `## [${newVer}] - ${today()}`
+if (!cl.includes(entry)) {
+  cl = cl.replace(/^(# CHANGELOG\n\n)/, `$1${entry}\n\n### Added\n- (请填写新功能)\n\n### Changed\n- (请填写变更)\n\n### Fixed\n- (请填写修复)\n\n---\n\n`)
+  fs.writeFileSync(clPath, cl)
+  console.log(`   已添加 v${newVer} 条目，请在 CHANGELOG.md 中补充具体内容`)
 }
 
-// 6. Git 提交 & 推送 master
-console.log('\n📤 Step 4: 提交并推送 master 分支')
+// 5. 提交 & 推送 master
+console.log('\n📤 Step 4: 提交并推送 master')
 run('git add -A')
-try {
-  run(`git commit -m "${commitMsg.split('\n')[0]}"`, { stdio: 'pipe' })
-} catch {
-  console.log('   ⚠ 无变更需要提交')
-}
+const msg = customMsg || `chore: 发布 v${newVer}`
+try { run(`git commit -m "${msg}"`, { stdio: 'pipe' }) } catch { console.log('   ⚠ 无新变更') }
 run('git push origin master')
 
-// 7. 部署 Gitee Pages
+// 6. 部署 Pages
 console.log('\n🌐 Step 5: 部署 Gitee Pages')
-const pagesBranch = 'pages'
+const pb = 'pages'
 
-// 7a. 创建/更新 pages 分支
-const hasPages = (() => {
-  try { runSilent(`git rev-parse --verify ${pagesBranch}`); return true }
-  catch { return false }
-})()
-
-if (hasPages) {
-  // 切换到 pages 分支，清空后放入 dist 内容
-  runSilent(`git branch -D ${pagesBranch}`)
-}
+// 删除旧的 pages 分支
+try { silent(`git branch -D ${pb}`) } catch {}
 
 // 创建孤立分支
-runSilent(`git checkout --orphan ${pagesBranch}`)
-runSilent('git rm -rf --cached . 2>nul || git rm -rf --cached .')
-runSilent('git clean -fdx -e node_modules -e .git')
+run(`git checkout --orphan ${pb}`)
+silent('git rm -rf --cached .')
+silent('git clean -fdx -e node_modules -e .git')
 
-// 复制 dist 内容到根目录
-const distFiles = fs.readdirSync(DIST_DIR)
-distFiles.forEach(file => {
-  const src = path.join(DIST_DIR, file)
-  const dest = path.join(ROOT, file)
-  if (fs.statSync(src).isDirectory()) {
-    fs.cpSync(src, dest, { recursive: true })
-  } else {
-    fs.copyFileSync(src, dest)
-  }
+// 复制 dist 到根
+fs.readdirSync(path.join(ROOT, 'dist')).forEach(f => {
+  const src = path.join(ROOT, 'dist', f)
+  const dst = path.join(ROOT, f)
+  fs.cpSync(src, dst, { recursive: true })
 })
 
-// 在 pages 分支根目录也放一个 .gitignore 防止无关文件
-fs.writeFileSync(path.join(ROOT, '.gitignore'), 'node_modules/\n.gitee/\n')
-
 run('git add -A')
-try {
-  run(`git commit -m "deploy: v${newVersion} - Gitee Pages"`, { stdio: 'pipe' })
-} catch {
-  console.log('   ⚠ pages 分支无变更')
-}
+run(`git commit -m "deploy: v${newVer} - Gitee Pages"`)
+run(`git push origin ${pb} --force`)
 
-// 强制推送 pages 分支
-try {
-  run(`git push origin ${pagesBranch} --force`)
-} catch {
-  console.log('   ⚠ pages 分支推送失败，请检查远程仓库是否支持')
-}
+// 切回 master
+run('git checkout -f master')
+silent(`git branch -D ${pb}`)
 
-// 7b. 切回 master
-runSilent('git checkout master')
-runSilent('git branch -D pages')
-
-// 8. 完成
 console.log('\n' + '━'.repeat(50))
-console.log(`\n✅ 部署完成 v${newVersion}`)
-console.log(`   📦 仓库: https://gitee.com/zealotxp/ehaiba-crm`)
-console.log(`   🌐 Pages: https://zealotxp.gitee.io/ehaiba-crm`)
-console.log(`   ⚠  Gitee Pages 需要手动在仓库设置中开启服务\n`)
+console.log(`\n✅ v${newVer} 部署完成!`)
+console.log(`   仓库: https://gitee.com/zealotxp/ehaiba-crm`)
+console.log(`   Pages: https://zealotxp.gitee.io/ehaiba-crm\n`)
