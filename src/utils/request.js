@@ -45,10 +45,10 @@ request.interceptors.response.use(
     if (response) {
       const { status, data } = response
       
+      const userStore = useUserStore()
       switch (status) {
         case 401:
           Message.error('登录已过期，请重新登录')
-          const userStore = useUserStore()
           userStore.logout()
           window.location.href = '/user/login'
           break

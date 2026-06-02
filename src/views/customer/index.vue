@@ -230,7 +230,7 @@ const searchForm = reactive({
 })
 
 const pagination = reactive({
-  total: 128,
+  total: 0,
   current: 1,
   pageSize: 20
 })
@@ -321,15 +321,57 @@ const tableData = ref([
 
 // 根据路由过滤数据
 const filteredTableData = computed(() => {
+  let data = tableData.value
+  // 路由过滤（我的客户）
   if (isMyCustomer.value) {
-    // 我的客户：只显示归属销售为"当前用户"或"张三"的客户（示例）
-    return tableData.value.filter(item => item.ownerName === '当前用户' || item.ownerName === '张三')
+    data = data.filter(item => item.ownerName === '当前用户' || item.ownerName === '张三')
   }
-  return tableData.value
+  // Tab 过滤
+  if (activeTab.value === 'my') {
+    data = data.filter(item => item.ownerName === '张三' || item.ownerName === '当前用户')
+  } else if (activeTab.value === 'pool') {
+    data = data.filter(item => !item.ownerName)
+  } else if (activeTab.value === 'recent') {
+    const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000
+    data = data.filter(item => item.lastFollowTime && new Date(item.lastFollowTime).getTime() > threeDaysAgo)
+  } else if (activeTab.value === 'unfollow7') {
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
+    data = data.filter(item => !item.lastFollowTime || new Date(item.lastFollowTime).getTime() < sevenDaysAgo)
+  } else if (activeTab.value === 'unfollow30') {
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000
+    data = data.filter(item => !item.lastFollowTime || new Date(item.lastFollowTime).getTime() < thirtyDaysAgo)
+  }
+  // 关键词搜索
+  if (searchForm.keyword) {
+    const kw = searchForm.keyword.toLowerCase()
+    data = data.filter(item =>
+      item.name?.toLowerCase().includes(kw) ||
+      item.entityName?.toLowerCase().includes(kw) ||
+      item.contacts?.some(c => c.name?.includes(searchForm.keyword) || c.phone?.includes(searchForm.keyword))
+    )
+  }
+  // 行业筛选
+  if (searchForm.industry) {
+    data = data.filter(item => item.industry === searchForm.industry)
+  }
+  // 等级筛选
+  if (searchForm.level) {
+    data = data.filter(item => item.level === searchForm.level)
+  }
+  // 状态筛选
+  if (searchForm.status) {
+    data = data.filter(item => item.status === searchForm.status)
+  }
+  return data
 })
 
-// 计算属性用于表格数据
-const displayData = computed(() => filteredTableData.value)
+// 计算属性用于表格数据（含分页）
+const displayData = computed(() => {
+  const data = filteredTableData.value
+  pagination.total = data.length
+  const start = (pagination.current - 1) * pagination.pageSize
+  return data.slice(start, start + pagination.pageSize)
+})
 
 const getIndustryLabel = (value) => getDictLabel(INDUSTRY_LIST, value)
 const getLevelLabel = (value) => getDictLabel(CUSTOMER_LEVEL, value)
@@ -348,9 +390,20 @@ const formatDate = (date) => {
   })
 }
 
-const handleSearch = () => {}
-const handleReset = () => {}
-const handleTabChange = () => {}
+const handleSearch = () => {
+  pagination.current = 1
+}
+const handleReset = () => {
+  searchForm.keyword = ''
+  searchForm.industry = undefined
+  searchForm.level = undefined
+  searchForm.status = undefined
+  pagination.current = 1
+}
+const handleTabChange = (tab) => {
+  activeTab.value = tab
+  pagination.current = 1
+}
 const handlePageChange = (page) => {
   pagination.current = page
 }

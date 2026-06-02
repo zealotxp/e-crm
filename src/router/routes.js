@@ -154,12 +154,49 @@ export const routes = [
         }
       },
       {
+        path: '/bug',
+        name: 'Bug',
+        component: () => import('@/views/ticket/index.vue'),
+        meta: {
+          title: '售后工单',
+          icon: 'icon-bug',
+          hideInMenu: true
+        }
+      },
+      {
         path: '/report',
         name: 'Report',
         component: () => import('@/views/report/index.vue'),
         meta: {
           title: '报表中心',
           icon: 'icon-bar-chart'
+        }
+      },
+      {
+        path: '/report/sales',
+        name: 'ReportSales',
+        component: () => import('@/views/report/sales.vue'),
+        meta: {
+          title: '销售报表',
+          hideInMenu: true
+        }
+      },
+      {
+        path: '/report/project',
+        name: 'ReportProject',
+        component: () => import('@/views/report/project.vue'),
+        meta: {
+          title: '项目报表',
+          hideInMenu: true
+        }
+      },
+      {
+        path: '/report/finance',
+        name: 'ReportFinance',
+        component: () => import('@/views/report/finance.vue'),
+        meta: {
+          title: '财务报表',
+          hideInMenu: true
         }
       },
       {
