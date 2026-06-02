@@ -1,7 +1,7 @@
 {
-  "name": "crm-arco",
+  "name": "e-crm",
   "version": "1.0.7",
-  "description": "CRM系统 - Arco Design Vue",
+  "description": "e-CRM - 企业客户关系管理系统 (Arco Design Vue)",
   "type": "module",
   "scripts": {
     "dev": "vite",

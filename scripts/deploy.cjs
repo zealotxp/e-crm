@@ -1,5 +1,5 @@
 /**
- * ehaiba-crm 自动部署脚本
+ * e-CRM 自动部署脚本
  * 功能: 版本号自增 → 构建 → 更新 CHANGELOG → 提交 → 推送 → Gitee Pages
  *
  * 用法:
@@ -35,7 +35,7 @@ const mi = args.indexOf('--message')
 const customMsg = mi > -1 ? args[mi + 1] : null
 
 // ─── 主流程 ──────────────────────────────────────────
-console.log('\n🚀 ehaiba-crm 自动部署\n' + '━'.repeat(50))
+console.log('\n🚀 e-CRM 自动部署\n' + '━'.repeat(50))
 
 // 确保在 master 分支且工作区干净
 const currentBranch = silent('git branch --show-current')
@@ -117,5 +117,5 @@ silent(`git branch -D ${pb}`)
 
 console.log('\n' + '━'.repeat(50))
 console.log(`\n✅ v${newVer} 部署完成!`)
-console.log(`   仓库: https://gitee.com/zealotxp/ehaiba-crm`)
-console.log(`   Pages: https://zealotxp.gitee.io/ehaiba-crm\n`)
+console.log(`   仓库: https://gitee.com/zealotxp/e-crm`)
+console.log(`   Pages: https://zealotxp.gitee.io/e-crm\n`)
