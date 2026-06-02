@@ -1,6 +1,6 @@
 /**
  * e-CRM 自动部署脚本
- * 功能: 版本号自增 → 构建 → 更新 CHANGELOG → 提交 → 推送 GitHub + Gitee → Pages
+ * 功能: 版本号自增 → 构建 → 更新 CHANGELOG → 提交 → 推送 GitHub Pages
  *
  * 用法:
  *   npm run deploy              # patch 版本自增 (1.0.7 → 1.0.8)
@@ -81,16 +81,15 @@ if (!cl.includes(entry)) {
   console.log(`   已添加 v${newVer} 条目，请在 CHANGELOG.md 中补充具体内容`)
 }
 
-// 5. 提交 & 推送 master (GitHub + Gitee)
+// 5. 提交 & 推送 master
 console.log('\n📤 Step 4: 提交并推送 master')
 run('git add -A')
 const msg = customMsg || `chore: 发布 v${newVer}`
 try { run(`git commit -m "${msg}"`, { stdio: 'pipe' }) } catch { console.log('   ⚠ 无新变更') }
-run('git push origin master')          // GitHub
-run('git push gitee master')           // Gitee
+run('git push origin master')
 
-// 6. 部署 Pages (GitHub + Gitee)
-console.log('\n🌐 Step 5: 部署 Pages')
+// 6. 部署 GitHub Pages
+console.log('\n🌐 Step 5: 部署 GitHub Pages')
 const pb = 'pages'
 
 // 删除旧的 pages 分支
@@ -111,7 +110,6 @@ fs.readdirSync(path.join(ROOT, 'dist')).forEach(f => {
 run('git add -A')
 run(`git commit -m "deploy: v${newVer} - Pages"`)
 run(`git push origin ${pb} --force`)   // GitHub Pages
-run(`git push gitee ${pb} --force`)    // Gitee Pages
 
 // 切回 master
 run('git checkout -f master')
@@ -119,7 +117,5 @@ silent(`git branch -D ${pb}`)
 
 console.log('\n' + '━'.repeat(50))
 console.log(`\n✅ v${newVer} 部署完成!`)
-console.log(`   GitHub: https://github.com/zealotxp/e-crm`)
-console.log(`   GitHub Pages: https://zealotxp.github.io/e-crm`)
-console.log(`   Gitee: https://gitee.com/zealotxp/e-crm`)
-console.log(`   Gitee Pages: https://zealotxp.gitee.io/e-crm\n`)
+console.log(`   仓库: https://github.com/zealotxp/e-crm`)
+console.log(`   Pages: https://zealotxp.github.io/e-crm\n`)

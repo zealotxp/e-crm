@@ -5,11 +5,10 @@
 ### Added
 - 🔀 **仓库迁移至 GitHub**: https://github.com/zealotxp/e-crm
 - GitHub Pages: https://zealotxp.github.io/e-crm
-- Gitee 保留为镜像仓库: https://gitee.com/zealotxp/e-crm
 
 ### Changed
-- `scripts/deploy.cjs` 支持 GitHub + Gitee 双推送
-- `origin` 远程切换为 GitHub，Gitee 作为 `gitee` 备用远程
+- `scripts/deploy.cjs` 支持 GitHub Pages 自动部署
+- `origin` 远程切换为 GitHub
 
 ### Fixed
 - 修复 `/bug` 路由缺失，复用工单页面避免 404
