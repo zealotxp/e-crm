@@ -76,7 +76,8 @@ const clPath = path.join(ROOT, 'CHANGELOG.md')
 let cl = fs.readFileSync(clPath, 'utf-8')
 const entry = `## [${newVer}] - ${today()}`
 if (!cl.includes(entry)) {
-  cl = cl.replace(/^(# CHANGELOG\n\n)/, `$1${entry}\n\n### Added\n- (请填写新功能)\n\n### Changed\n- (请填写变更)\n\n### Fixed\n- (请填写修复)\n\n---\n\n`)
+  const tpl = `## [${newVer}] - ${today()}\n\n### Added\n- (请填写新功能)\n\n### Changed\n- (请填写变更)\n\n### Fixed\n- (请填写修复)\n\n---\n\n`
+  cl = cl.replace(/(# CHANGELOG\n\n)/, `$1${tpl}`)
   fs.writeFileSync(clPath, cl)
   console.log(`   已添加 v${newVer} 条目，请在 CHANGELOG.md 中补充具体内容`)
 }
